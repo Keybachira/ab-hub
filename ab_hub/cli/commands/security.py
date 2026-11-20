@@ -6,8 +6,8 @@ import asyncio
 
 import typer
 from rich.console import Console
-from rich.table import Table
 from rich.pretty import Pretty
+from rich.table import Table
 
 from ab_hub.core.exceptions import AuthenticationError
 from ab_hub.services.security_service import (

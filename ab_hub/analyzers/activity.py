@@ -5,9 +5,8 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
-from ab_hub.core.models import ActivityClassification, ActivityScore
 from ab_hub.analyzers.commits import compute_commit_stats
-from ab_hub.core.models import CommitInfo
+from ab_hub.core.models import ActivityClassification, ActivityScore, CommitInfo
 
 
 def calculate_activity_score(

@@ -96,14 +96,13 @@ def list_repositories(
 
 def get_repository_by_name(session: Session, name: str) -> Repository | None:
     """Find by short name or full_name (case-insensitive-ish)."""
-    stmt = select(Repository).where(
-        (Repository.name == name) | (Repository.full_name == name)
-    )
+    stmt = select(Repository).where((Repository.name == name) | (Repository.full_name == name))
     return session.execute(stmt).scalar_one_or_none()
 
 
 def count_repositories(session: Session) -> int:
     from sqlalchemy import func
+
     return session.execute(select(func.count()).select_from(Repository)).scalar_one()
 
 
@@ -124,6 +123,7 @@ def finish_scan(
     status: str = "completed",
 ) -> None:
     import json
+
     scan.completed_at = datetime.now(timezone.utc)
     scan.status = status
     scan.repositories_discovered = discovered

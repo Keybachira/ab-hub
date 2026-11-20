@@ -94,7 +94,7 @@ class GitHubClient:
             except (httpx.TimeoutException, httpx.NetworkError) as exc:
                 last_exc = exc
                 if attempt < retries:
-                    wait = 2 ** attempt
+                    wait = 2**attempt
                     logger.warning("Network error, retrying in %ss: %s", wait, exc)
                     await asyncio.sleep(wait)
                 else:

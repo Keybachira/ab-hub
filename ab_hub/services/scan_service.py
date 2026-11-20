@@ -7,19 +7,23 @@ from datetime import datetime, timezone
 from typing import Any
 
 from rich.console import Console
-from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TaskProgressColumn
+from rich.progress import BarColumn, Progress, SpinnerColumn, TaskProgressColumn, TextColumn
 
 from ab_hub.analyzers.activity import calculate_activity_score
 from ab_hub.analyzers.commits import parse_commit
 from ab_hub.analyzers.structure import extract_paths_from_contents, has_documentation, has_tests
-from ab_hub.analyzers.technology import detect_from_file_tree, detect_from_languages, merge_technologies
+from ab_hub.analyzers.technology import (
+    detect_from_file_tree,
+    detect_from_languages,
+    merge_technologies,
+)
 from ab_hub.core.logger import get_logger
 from ab_hub.discovery.scanner import run_discovery
 from ab_hub.github.client import GitHubClient
 from ab_hub.github.commits import list_commits
-from ab_hub.github.repositories import get_languages, get_contents
+from ab_hub.github.repositories import get_contents, get_languages
 from ab_hub.storage.database import get_session, init_db
-from ab_hub.storage.models import ActivitySnapshot, Commit, Technology, RepositoryTechnology
+from ab_hub.storage.models import ActivitySnapshot, Commit, RepositoryTechnology, Technology
 from ab_hub.storage.repositories import create_scan, finish_scan, upsert_repository
 
 logger = get_logger(__name__)
@@ -85,7 +89,9 @@ async def run_full_scan(*, incremental: bool = False, run_security: bool = False
 
                         # Persist technologies
                         for tinfo in technologies:
-                            tech = session.query(Technology).filter_by(name=tinfo.name).one_or_none()
+                            tech = (
+                                session.query(Technology).filter_by(name=tinfo.name).one_or_none()
+                            )
                             if tech is None:
                                 tech = Technology(name=tinfo.name, category=tinfo.category.value)
                                 session.add(tech)
@@ -145,7 +151,10 @@ async def run_full_scan(*, incremental: bool = False, run_security: bool = False
 
                         if run_security:
                             try:
-                                from ab_hub.services.security_service import analyze_repository_security
+                                from ab_hub.services.security_service import (
+                                    analyze_repository_security,
+                                )
+
                                 await analyze_repository_security(client, repo, session=session)
                             except Exception as sec_exc:  # noqa: BLE001
                                 logger.debug("Security scan skipped for %s: %s", full_name, sec_exc)

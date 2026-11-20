@@ -69,6 +69,7 @@ def _delete_file_token() -> bool:
 def _keyring_get() -> Optional[str]:
     try:
         import keyring
+
         token = keyring.get_password(SERVICE_NAME, USERNAME)
         return token.strip() if token else None
     except Exception as exc:  # noqa: BLE001
@@ -79,6 +80,7 @@ def _keyring_get() -> Optional[str]:
 def _keyring_set(token: str) -> bool:
     try:
         import keyring
+
         keyring.set_password(SERVICE_NAME, USERNAME, token)
         return True
     except Exception as exc:  # noqa: BLE001
@@ -89,6 +91,7 @@ def _keyring_set(token: str) -> bool:
 def _keyring_delete() -> bool:
     try:
         import keyring
+
         keyring.delete_password(SERVICE_NAME, USERNAME)
         return True
     except Exception:  # noqa: BLE001

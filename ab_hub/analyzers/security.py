@@ -249,9 +249,7 @@ async def scan_dependencies_for_vulns(
 
         for dep, vulns in zip(dependencies, batch_results):
             for v in vulns:
-                findings.append(
-                    osv_to_finding(v, dep.name, dep.ecosystem, dep.version)
-                )
+                findings.append(osv_to_finding(v, dep.name, dep.ecosystem, dep.version))
 
     # Deduplicate by (osv_id or cve_id, package_name)
     seen: set[str] = set()

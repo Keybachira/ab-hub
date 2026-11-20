@@ -34,7 +34,9 @@ def print_banner(console: Console | None = None) -> None:
     )
 
 
-def print_home(console: Console | None = None, *, account: str | None = None, connected: bool = False) -> None:
+def print_home(
+    console: Console | None = None, *, account: str | None = None, connected: bool = False
+) -> None:
     """Friendly home screen when the user runs `ab-hub` with no command."""
     console = console or Console()
     print_banner(console)

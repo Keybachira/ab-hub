@@ -64,7 +64,9 @@ def scan(
         console.print()
     except AuthenticationError as exc:
         console.print()
-        console.print(Panel(str(exc), title="Authentication required", border_style="red", padding=(1, 2)))
+        console.print(
+            Panel(str(exc), title="Authentication required", border_style="red", padding=(1, 2))
+        )
         console.print()
         raise typer.Exit(1)
     except Exception as exc:  # noqa: BLE001

@@ -45,9 +45,10 @@ async def list_commits(
         pages += 1
 
         from ab_hub.github.pagination import get_next_url
+
         next_url = get_next_url(response)
         if next_url and next_url.startswith(client.settings.github_api_base):
-            next_url = next_url[len(client.settings.github_api_base):]
+            next_url = next_url[len(client.settings.github_api_base) :]
 
     logger.debug("Fetched %d commits for %s/%s", len(results), owner, repo)
     return results

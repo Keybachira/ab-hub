@@ -4,14 +4,14 @@ from __future__ import annotations
 
 from typing import Any
 
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 
 from ab_hub.storage.database import get_session
 from ab_hub.storage.models import (
     ActivitySnapshot,
     Repository,
-    Technology,
     RepositoryTechnology,
+    Technology,
     Vulnerability,
 )
 from ab_hub.storage.repositories import count_repositories
@@ -32,16 +32,13 @@ def generate_summary_report() -> dict[str, Any]:
         for s in snaps:
             classifications[s.classification] = classifications.get(s.classification, 0) + 1
 
-        tech_counts = (
-            session.execute(
-                select(Technology.name, func.count(RepositoryTechnology.id))
-                .join(RepositoryTechnology)
-                .group_by(Technology.name)
-                .order_by(func.count(RepositoryTechnology.id).desc())
-                .limit(15)
-            )
-            .all()
-        )
+        tech_counts = session.execute(
+            select(Technology.name, func.count(RepositoryTechnology.id))
+            .join(RepositoryTechnology)
+            .group_by(Technology.name)
+            .order_by(func.count(RepositoryTechnology.id).desc())
+            .limit(15)
+        ).all()
 
         # Security summary
         total_vulns = session.execute(select(func.count()).select_from(Vulnerability)).scalar_one()

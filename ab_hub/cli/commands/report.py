@@ -48,7 +48,9 @@ def export_cmd(
                         "visibility": r.visibility,
                         "is_archived": r.is_archived,
                         "pushed_at": r.pushed_at.isoformat() if r.pushed_at else None,
-                        "last_scanned_at": r.last_scanned_at.isoformat() if r.last_scanned_at else None,
+                        "last_scanned_at": r.last_scanned_at.isoformat()
+                        if r.last_scanned_at
+                        else None,
                     }
                     for r in repos
                 ],

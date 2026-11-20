@@ -83,8 +83,7 @@ def login(
 
     if not _looks_like_token(token):
         console.print(
-            "[yellow]⚠[/] Token format looks unusual. "
-            "Continuing anyway — GitHub will validate it."
+            "[yellow]⚠[/] Token format looks unusual. Continuing anyway — GitHub will validate it."
         )
 
     # Store first (so we can clean up on failure if we want)
@@ -229,9 +228,7 @@ def status() -> None:
         table.add_row("Profile", user["html_url"])
 
     console.print()
-    console.print(
-        Panel(table, title="[green]✓ Connected[/]", border_style="green", padding=(1, 1))
-    )
+    console.print(Panel(table, title="[green]✓ Connected[/]", border_style="green", padding=(1, 1)))
     console.print()
 
 

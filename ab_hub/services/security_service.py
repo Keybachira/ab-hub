@@ -6,10 +6,10 @@ import base64
 from datetime import datetime, timezone
 from typing import Any
 
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 
 from ab_hub.analyzers.dependencies import extract_dependencies_from_files
-from ab_hub.analyzers.security import scan_dependencies_for_vulns, security_score, SEVERITY_ORDER
+from ab_hub.analyzers.security import SEVERITY_ORDER, scan_dependencies_for_vulns, security_score
 from ab_hub.core.logger import get_logger
 from ab_hub.core.models import DependencyInfo
 from ab_hub.github.client import GitHubClient
@@ -181,18 +181,15 @@ def get_security_overview() -> dict[str, Any]:
         total_vulns = session.execute(select(func.count()).select_from(Vulnerability)).scalar_one()
         by_severity = dict(
             session.execute(
-                select(Vulnerability.severity, func.count())
-                .group_by(Vulnerability.severity)
+                select(Vulnerability.severity, func.count()).group_by(Vulnerability.severity)
             ).all()
         )
-        top_packages = (
-            session.execute(
-                select(Vulnerability.package_name, func.count())
-                .group_by(Vulnerability.package_name)
-                .order_by(func.count().desc())
-                .limit(15)
-            ).all()
-        )
+        top_packages = session.execute(
+            select(Vulnerability.package_name, func.count())
+            .group_by(Vulnerability.package_name)
+            .order_by(func.count().desc())
+            .limit(15)
+        ).all()
         affected_repos = session.execute(
             select(func.count(func.distinct(Vulnerability.repository_id)))
         ).scalar_one()
@@ -213,9 +210,7 @@ def get_security_overview() -> dict[str, Any]:
             "total_vulnerabilities": total_vulns,
             "affected_repositories": affected_repos,
             "by_severity": by_severity,
-            "top_vulnerable_packages": [
-                {"name": n, "count": c} for n, c in top_packages
-            ],
+            "top_vulnerable_packages": [{"name": n, "count": c} for n, c in top_packages],
             "recent_critical_or_high": [
                 {
                     "package": v.package_name,

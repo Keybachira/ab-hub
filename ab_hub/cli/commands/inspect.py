@@ -6,12 +6,12 @@ import typer
 from rich.console import Console
 from rich.pretty import Pretty
 from rich.table import Table
+from sqlalchemy import select
 
 from ab_hub.services.comparison_service import compare_repositories
 from ab_hub.services.inspection_service import inspect_repository
 from ab_hub.storage.database import get_session, init_db
 from ab_hub.storage.models import ActivitySnapshot, Repository
-from sqlalchemy import select
 
 console = Console()
 app = typer.Typer(help="Inspect projects and activity")
@@ -36,6 +36,7 @@ def activity_cmd(
     with get_session() as session:
         if name:
             from ab_hub.storage.repositories import get_repository_by_name
+
             repo = get_repository_by_name(session, name)
             if not repo:
                 console.print(f"[red]Not found:[/] {name}")

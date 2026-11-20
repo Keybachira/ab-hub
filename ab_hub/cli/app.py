@@ -6,7 +6,8 @@ import typer
 from rich.console import Console
 
 from ab_hub import __version__
-from ab_hub.cli.commands import auth, inspect, list as list_cmd, report, scan, security
+from ab_hub.cli.commands import auth, inspect, report, scan, security
+from ab_hub.cli.commands import list as list_cmd
 from ab_hub.cli.ui.banner import print_banner, print_home
 from ab_hub.github.authentication import get_token
 
@@ -67,6 +68,7 @@ def main(
             connected = True
             try:
                 import asyncio
+
                 from ab_hub.github.client import GitHubClient
 
                 async def _who() -> str | None:
