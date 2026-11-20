@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "ab-hub"
 version = "0.1.0"
-description = "Project Intelligence & Repository Control System — Know what you built. Control what you own."
+description = "Sistema de Inteligência de Projectos e Controlo de Repositórios — Sabe o que construiu. Controla o que possui."
 readme = "README.md"
 requires-python = ">=3.12"
 license = { text = "MIT" }
