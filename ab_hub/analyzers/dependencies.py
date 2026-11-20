@@ -6,8 +6,8 @@ import json
 import re
 from typing import Any
 
-from ab_hub.core.logger import get_logger
 from ab_hub.core.models import DependencyInfo
+from ab_hub.core.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -79,8 +79,8 @@ def parse_pyproject_toml_basic(content: str) -> list[DependencyInfo]:
 
         if in_poetry_deps and "=" in stripped and not stripped.startswith("#"):
             parts = stripped.split("=", 1)
-            name = parts[0].strip().strip("\"'")
-            version = parts[1].strip().strip("\"'") if len(parts) > 1 else None
+            name = parts[0].strip().strip('"\'')
+            version = parts[1].strip().strip('"\'') if len(parts) > 1 else None
             if name and name != "python":
                 deps.append(
                     DependencyInfo(
@@ -92,7 +92,7 @@ def parse_pyproject_toml_basic(content: str) -> list[DependencyInfo]:
                 )
         elif in_project_deps and stripped.startswith('"') or stripped.startswith("'"):
             # "package>=1.0",
-            item = stripped.strip(",").strip().strip("\"'")
+            item = stripped.strip(",").strip().strip('"\'')
             match = re.match(r"([A-Za-z0-9_.\-]+)\s*([=<>!~].+)?", item)
             if match:
                 name, version = match.group(1), (match.group(2) or "").strip()
@@ -119,7 +119,7 @@ def parse_go_mod(content: str) -> list[DependencyInfo]:
             in_require = False
             continue
         if stripped.startswith("require ") and not stripped.endswith("("):
-            parts = stripped[len("require ") :].split()
+            parts = stripped[len("require "):].split()
             if len(parts) >= 2:
                 deps.append(
                     DependencyInfo(

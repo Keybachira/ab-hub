@@ -249,7 +249,9 @@ async def scan_dependencies_for_vulns(
 
         for dep, vulns in zip(dependencies, batch_results):
             for v in vulns:
-                findings.append(osv_to_finding(v, dep.name, dep.ecosystem, dep.version))
+                findings.append(
+                    osv_to_finding(v, dep.name, dep.ecosystem, dep.version)
+                )
 
     # Deduplicate by (osv_id or cve_id, package_name)
     seen: set[str] = set()
@@ -293,15 +295,15 @@ def security_score(findings: list[dict[str, Any]]) -> dict[str, Any]:
     health = max(0, 100 - min(100, risk))
 
     if counts["CRITICAL"] > 0:
-        status = "Critical"
+        status = "Crítico"
     elif counts["HIGH"] > 0:
-        status = "High Risk"
+        status = "Risco elevado"
     elif counts["MEDIUM"] > 0:
-        status = "Medium Risk"
+        status = "Risco médio"
     elif counts["LOW"] > 0 or counts["UNKNOWN"] > 0:
-        status = "Low Risk"
+        status = "Risco baixo"
     else:
-        status = "Clean"
+        status = "Limpo"
 
     return {
         "health_score": health,

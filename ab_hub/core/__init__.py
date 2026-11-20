@@ -1,1 +1,1 @@
-"""Core package — configuration, models, logging and exceptions."""
+"""Pacote núcleo — configuração, modelos, logging e excepções."""

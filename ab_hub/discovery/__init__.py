@@ -1,1 +1,1 @@
-"""Discovery engine package."""
+"""Pacote do motor de descoberta."""

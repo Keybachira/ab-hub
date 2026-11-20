@@ -5,8 +5,9 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from typing import Any
 
+from ab_hub.core.models import ActivityClassification, ActivityScore
 from ab_hub.analyzers.commits import compute_commit_stats
-from ab_hub.core.models import ActivityClassification, ActivityScore, CommitInfo
+from ab_hub.core.models import CommitInfo
 
 
 def calculate_activity_score(
@@ -30,7 +31,7 @@ def calculate_activity_score(
         return ActivityScore(
             score=0.0,
             classification=ActivityClassification.ARCHIVED,
-            evidence={"reason": "Repository is archived"},
+            evidence={"reason": "O repositório está arquivado"},
         )
 
     stats = compute_commit_stats(commits)

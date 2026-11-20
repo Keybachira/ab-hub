@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from ab_hub.core.logger import get_logger
 from ab_hub.core.models import DetectionMethod, TechnologyCategory, TechnologyInfo
+from ab_hub.core.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -69,7 +69,8 @@ def detect_from_file_tree(paths: list[str]) -> list[TechnologyInfo]:
     for signature, (tech_name, category) in FILE_SIGNATURES.items():
         sig_lower = signature.lower()
         matched = any(
-            p == sig_lower or p.endswith("/" + sig_lower) or sig_lower in p for p in lower_paths
+            p == sig_lower or p.endswith("/" + sig_lower) or sig_lower in p
+            for p in lower_paths
         )
         if matched and tech_name not in found:
             found[tech_name] = TechnologyInfo(

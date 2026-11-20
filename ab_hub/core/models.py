@@ -16,11 +16,11 @@ class Visibility(str, Enum):
 
 
 class ActivityClassification(str, Enum):
-    ACTIVE = "Active"
-    MAINTAINED = "Maintained"
-    DORMANT = "Dormant"
-    POSSIBLY_ABANDONED = "Possibly Abandoned"
-    ARCHIVED = "Archived"
+    ACTIVE = "Activo"
+    MAINTAINED = "Mantido"
+    DORMANT = "Dormente"
+    POSSIBLY_ABANDONED = "Possivelmente abandonado"
+    ARCHIVED = "Arquivado"
 
 
 class DetectionMethod(str, Enum):
@@ -111,7 +111,7 @@ class ActivityScore(BaseModel):
 class ScanResult(BaseModel):
     started_at: datetime
     completed_at: datetime | None = None
-    status: str = "running"
+    status: str = "em_curso"
     repositories_discovered: int = 0
     repositories_analyzed: int = 0
     errors: list[str] = Field(default_factory=list)

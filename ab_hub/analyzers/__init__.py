@@ -1,1 +1,1 @@
-"""Intelligence analyzers package."""
+"""Pacote de analisadores de inteligência."""

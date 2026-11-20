@@ -67,26 +67,28 @@ class GitHubClient:
                 self._check_rate_limit(response)
 
                 if response.status_code == 404:
-                    raise GitHubAPIError(f"Not found: {path}", status_code=404)
+                    raise GitHubAPIError(f"Não encontrado: {path}", status_code=404)
                 if response.status_code == 401:
-                    raise GitHubAPIError("Unauthorized — check your token", status_code=401)
+                    raise GitHubAPIError(
+                        "Não autorizado — verifique o seu token", status_code=401
+                    )
                 if response.status_code == 403:
-                    # Could be rate limit or permissions
+                    # Pode ser limite de taxa ou permissões
                     remaining = response.headers.get("X-RateLimit-Remaining")
                     if remaining == "0":
                         reset = response.headers.get("X-RateLimit-Reset")
                         raise RateLimitError(
-                            "GitHub rate limit exceeded",
+                            "Limite de taxa do GitHub excedido",
                             reset_at=int(reset) if reset else None,
                         )
                     raise GitHubAPIError(
-                        f"Forbidden: {response.text[:200]}",
+                        f"Acesso proibido: {response.text[:200]}",
                         status_code=403,
                         response=response.text,
                     )
                 if response.status_code >= 400:
                     raise GitHubAPIError(
-                        f"GitHub API error {response.status_code}: {response.text[:300]}",
+                        f"Erro da API GitHub {response.status_code}: {response.text[:300]}",
                         status_code=response.status_code,
                         response=response.text,
                     )
@@ -94,11 +96,13 @@ class GitHubClient:
             except (httpx.TimeoutException, httpx.NetworkError) as exc:
                 last_exc = exc
                 if attempt < retries:
-                    wait = 2**attempt
-                    logger.warning("Network error, retrying in %ss: %s", wait, exc)
+                    wait = 2 ** attempt
+                    logger.warning("Erro de rede, a tentar de novo em %ss: %s", wait, exc)
                     await asyncio.sleep(wait)
                 else:
-                    raise GitHubAPIError(f"Network failure after retries: {exc}") from exc
+                    raise GitHubAPIError(
+                        f"Falha de rede após tentativas: {exc}"
+                    ) from exc
             except RateLimitError:
                 raise
             except GitHubAPIError:

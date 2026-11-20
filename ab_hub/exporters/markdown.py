@@ -1,4 +1,4 @@
-"""Markdown exporter."""
+"""Exportador Markdown."""
 
 from __future__ import annotations
 
@@ -9,19 +9,19 @@ from typing import Any
 def export_summary_markdown(report: dict[str, Any], path: Path) -> Path:
     path.parent.mkdir(parents=True, exist_ok=True)
     lines = [
-        "# AB-hub Report",
+        "# Relatório AB-hub",
         "",
-        f"**Total repositories:** {report.get('total_repositories', 0)}",
-        f"**Private:** {report.get('private', 0)}",
-        f"**Public:** {report.get('public', 0)}",
-        f"**Archived:** {report.get('archived', 0)}",
+        f"**Total de repositórios:** {report.get('total_repositories', 0)}",
+        f"**Privados:** {report.get('private', 0)}",
+        f"**Públicos:** {report.get('public', 0)}",
+        f"**Arquivados:** {report.get('archived', 0)}",
         "",
-        "## Activity Classifications",
+        "## Classificações de actividade",
         "",
     ]
     for cls, count in (report.get("classifications") or {}).items():
         lines.append(f"- **{cls}**: {count}")
-    lines += ["", "## Top Technologies", ""]
+    lines += ["", "## Principais tecnologias", ""]
     for t in report.get("top_technologies") or []:
         lines.append(f"- {t['name']}: {t['count']}")
     lines.append("")

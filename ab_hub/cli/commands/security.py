@@ -1,4 +1,4 @@
-"""Security monitoring commands."""
+"""Comandos de monitorização de segurança."""
 
 from __future__ import annotations
 
@@ -6,8 +6,9 @@ import asyncio
 
 import typer
 from rich.console import Console
-from rich.pretty import Pretty
 from rich.table import Table
+from rich.pretty import Pretty
+from rich import box
 
 from ab_hub.core.exceptions import AuthenticationError
 from ab_hub.services.security_service import (
@@ -17,43 +18,52 @@ from ab_hub.services.security_service import (
 )
 
 console = Console()
-app = typer.Typer(help="Dependency vulnerability & security monitoring")
+app = typer.Typer(help="Monitorização de vulnerabilidades e segurança de dependências")
 
 
 @app.callback(invoke_without_command=True)
 def security_root(ctx: typer.Context) -> None:
-    """Security monitoring (use subcommands or --help)."""
+    """Monitorização de segurança (use subcomandos ou --help)."""
     if ctx.invoked_subcommand is None:
-        # Default: show overview
+        # Por omissão: mostrar visão geral
         overview()
 
 
-@app.command("scan")
+@app.command("analisar")
 def security_scan(
-    repo: str = typer.Argument(None, help="Optional repository name (default: recent batch)"),
-    limit: int = typer.Option(30, "--limit", "-n", help="Max repositories when scanning batch"),
+    repo: str = typer.Argument(
+        None, help="Nome opcional do repositório (por omissão: lote recente)"
+    ),
+    limit: int = typer.Option(
+        30, "--limit", "-n", help="Máximo de repositórios ao analisar em lote"
+    ),
 ) -> None:
-    """Run vulnerability scan (OSV) on one or many repositories."""
+    """Executar análise de vulnerabilidades (OSV) num ou em vários repositórios."""
     try:
-        console.print("[bold]Running security scan (OSV)…[/]")
+        console.print("[bold]A executar análise de segurança (OSV)…[/]")
         result = asyncio.run(run_security_scan(repo_name=repo, limit=limit))
         if "error" in result:
             console.print(f"[red]{result['error']}[/]")
             raise typer.Exit(1)
 
         console.print(
-            f"\n[green]✓ Security scan complete[/]\n"
-            f"  Processed        : {result['processed']}\n"
-            f"  Vulnerabilities  : {result['total_vulnerabilities']}\n"
-            f"  Errors           : {len(result.get('errors') or [])}"
+            f"\n[green]✓ Análise de segurança concluída[/]\n"
+            f"  Processados       : {result['processed']}\n"
+            f"  Vulnerabilidades  : {result['total_vulnerabilities']}\n"
+            f"  Erros             : {len(result.get('errors') or [])}"
         )
-        # Show per-repo summary table
-        table = Table(title="Security results")
-        table.add_column("Repository")
+        # Tabela de resumo por repositório
+        table = Table(
+            title="[bold cyan]Resultados de segurança[/]",
+            box=box.ROUNDED,
+            border_style="dim",
+            header_style="bold magenta",
+        )
+        table.add_column("Repositório", style="cyan")
         table.add_column("Deps", justify="right")
         table.add_column("Vulns", justify="right")
-        table.add_column("Status")
-        table.add_column("Health", justify="right")
+        table.add_column("Estado")
+        table.add_column("Saúde", justify="right")
         for r in result.get("results") or []:
             summary = r.get("summary") or {}
             table.add_row(
@@ -66,28 +76,33 @@ def security_scan(
         if result.get("results"):
             console.print(table)
         if result.get("errors"):
-            console.print("\n[yellow]Errors:[/]")
+            console.print("\n[yellow]Erros:[/]")
             for e in result["errors"][:8]:
                 console.print(f"  • {e}")
     except AuthenticationError as exc:
         console.print(f"[red]{exc}[/]")
         raise typer.Exit(1)
     except Exception as exc:  # noqa: BLE001
-        console.print(f"[red]Security scan failed:[/] {exc}")
+        console.print(f"[red]A análise de segurança falhou:[/] {exc}")
         raise typer.Exit(1)
 
 
-@app.command("overview")
+@app.command("resumo")
 def overview() -> None:
-    """Show global security posture from local database."""
+    """Mostrar a postura de segurança global a partir da base de dados local."""
     data = get_security_overview()
     console.print(Pretty(data, expand_all=False))
 
     by_sev = data.get("by_severity") or {}
     if by_sev:
-        table = Table(title="Vulnerabilities by severity")
-        table.add_column("Severity")
-        table.add_column("Count", justify="right")
+        table = Table(
+            title="[bold cyan]Vulnerabilidades por gravidade[/]",
+            box=box.ROUNDED,
+            border_style="dim",
+            header_style="bold magenta",
+        )
+        table.add_column("Gravidade")
+        table.add_column("Quantidade", justify="right")
         for sev in ("CRITICAL", "HIGH", "MEDIUM", "LOW", "UNKNOWN"):
             if sev in by_sev:
                 style = {
@@ -100,27 +115,32 @@ def overview() -> None:
         console.print(table)
 
 
-@app.command("list")
+@app.command("listar")
 def list_vulns(
-    repo: str = typer.Argument(..., help="Repository name or full_name"),
+    repo: str = typer.Argument(..., help="Nome do repositório ou full_name"),
 ) -> None:
-    """List known vulnerabilities for a specific repository."""
+    """Listar vulnerabilidades conhecidas de um repositório específico."""
     vulns = list_vulnerabilities_for_repo(repo)
     if vulns is None:
-        console.print(f"[red]Repository not found:[/] {repo}")
+        console.print(f"[red]Repositório não encontrado:[/] {repo}")
         raise typer.Exit(1)
     if not vulns:
-        console.print(f"[green]No vulnerabilities recorded for[/] {repo}")
-        console.print("[dim]Run: ab-hub security scan <repo>[/]")
+        console.print(f"[green]Nenhuma vulnerabilidade registada para[/] {repo}")
+        console.print("[dim]Execute: ab-hub seguranca analisar <repo>[/]")
         return
 
-    table = Table(title=f"Vulnerabilities — {repo}")
-    table.add_column("Severity")
-    table.add_column("Package")
-    table.add_column("Installed")
-    table.add_column("Fixed")
+    table = Table(
+        title=f"[bold cyan]Vulnerabilidades — {repo}[/]",
+        box=box.ROUNDED,
+        border_style="dim",
+        header_style="bold magenta",
+    )
+    table.add_column("Gravidade")
+    table.add_column("Pacote")
+    table.add_column("Instalada")
+    table.add_column("Corrigida")
     table.add_column("ID")
-    table.add_column("Summary")
+    table.add_column("Resumo")
 
     for v in vulns:
         sev = v.get("severity") or "UNKNOWN"
@@ -140,4 +160,10 @@ def list_vulns(
             style=style,
         )
     console.print(table)
-    console.print(f"\n[dim]{len(vulns)} finding(s)[/]")
+    console.print(f"\n[dim]{len(vulns)} resultado(s)[/]")
+
+
+# Aliases em inglês
+app.command("scan")(security_scan)
+app.command("overview")(overview)
+app.command("list")(list_vulns)

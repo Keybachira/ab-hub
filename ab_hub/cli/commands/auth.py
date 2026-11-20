@@ -1,4 +1,4 @@
-"""Authentication commands — clean, resilient, user-friendly."""
+"""Comandos de autenticação — limpos, resilientes e amigáveis."""
 
 from __future__ import annotations
 
@@ -10,6 +10,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 from rich.text import Text
+from rich import box
 
 from ab_hub.core.exceptions import AuthenticationError, GitHubAPIError
 from ab_hub.github.authentication import (
@@ -21,80 +22,82 @@ from ab_hub.github.authentication import (
 from ab_hub.github.client import GitHubClient
 
 console = Console()
-app = typer.Typer(help="Authentication — login, status, logout")
+app = typer.Typer(help="Autenticação — login, estado e logout")
 
 
 def _looks_like_token(value: str) -> bool:
     value = value.strip()
     if len(value) < 20:
         return False
-    # Classic PAT, fine-grained, or OAuth-style
+    # PAT clássico, fine-grained ou estilo OAuth
     return bool(
         re.match(r"^(ghp_|github_pat_|gho_|ghu_|ghs_|ghr_)[A-Za-z0-9_]+$", value)
         or (len(value) >= 40 and " " not in value)
     )
 
 
-@app.command("login")
+@app.command("entrar")
 def login(
     token: str = typer.Option(
         None,
         "--token",
         "-t",
-        help="GitHub Personal Access Token (omit to type interactively)",
+        help="Token de Acesso Pessoal do GitHub (omitir para introduzir interactivamente)",
         hide_input=True,
     ),
 ) -> None:
     """
-    Authenticate with GitHub.
+    Autenticar-se no GitHub.
 
-    Create a token at: https://github.com/settings/tokens
-    Recommended scopes: repo, read:org
+    Crie um token em: https://github.com/settings/tokens
+    Âmbitos recomendados: repo, read:org
     """
     console.print()
     console.print(
         Panel(
             Text.from_markup(
-                "[bold]AB-hub Login[/]\n\n"
-                "You need a [cyan]GitHub Personal Access Token[/].\n"
-                "Create one at: [link=https://github.com/settings/tokens]"
+                "[bold]Login AB-hub[/]\n\n"
+                "Precisa de um [cyan]Token de Acesso Pessoal do GitHub[/].\n"
+                "Crie um em: [link=https://github.com/settings/tokens]"
                 "https://github.com/settings/tokens[/link]\n\n"
-                "[dim]Recommended scopes:[/]  [green]repo[/]  ·  [green]read:org[/]\n"
-                "[dim]Fine-grained tokens also work (Contents: Read + Metadata).[/]"
+                "[dim]Âmbitos recomendados:[/]  [green]repo[/]  ·  [green]read:org[/]\n"
+                "[dim]Tokens fine-grained também funcionam (Contents: Read + Metadata).[/]"
             ),
-            title="🔐 Authentication",
+            title="🔐 Autenticação",
             border_style="cyan",
             padding=(1, 2),
+            box=box.ROUNDED,
         )
     )
     console.print()
 
     if not token:
         try:
-            token = typer.prompt("Paste your GitHub token", hide_input=True)
+            token = typer.prompt("Cole o seu token GitHub", hide_input=True)
         except (KeyboardInterrupt, EOFError):
-            console.print("\n[yellow]Login cancelled.[/]")
+            console.print("\n[yellow]Login cancelado.[/]")
             raise typer.Exit(0)
 
     token = (token or "").strip()
     if not token:
-        console.print("[red]✗[/] Empty token. Nothing stored.")
+        console.print("[red]✗[/] Token vazio. Nada foi guardado.")
         raise typer.Exit(1)
 
     if not _looks_like_token(token):
         console.print(
-            "[yellow]⚠[/] Token format looks unusual. Continuing anyway — GitHub will validate it."
+            "[yellow]⚠[/] O formato do token parece invulgar. "
+            "A continuar na mesma — o GitHub irá validá-lo."
         )
 
-    # Store first (so we can clean up on failure if we want)
+    # Guardar primeiro (para poder limpar em caso de falha se quisermos)
     try:
         backend = set_token(token)
     except AuthenticationError as exc:
-        console.print(f"[red]✗[/] Could not store token: {exc}")
+        console.print(f"[red]✗[/] Não foi possível guardar o token: {exc}")
         raise typer.Exit(1)
 
-    # Validate against GitHub
-    console.print("[dim]Validating token with GitHub…[/]")
+    # Validar contra o GitHub
+    console.print("[dim]A validar o token com o GitHub…[/]")
 
     async def _validate() -> dict:
         async with GitHubClient(token=token) as client:
@@ -108,26 +111,27 @@ def login(
     try:
         data = asyncio.run(_validate())
     except GitHubAPIError as exc:
-        # Don't leave a bad token stored if validation fails hard on auth
+        # Não deixar um token inválido guardado se a validação falhar por auth
         if getattr(exc, "status_code", None) in (401, 403):
             delete_token()
             console.print(
                 Panel(
-                    f"[red]Authentication failed[/]\n\n{exc}\n\n"
-                    "[dim]Token was not saved. Check scopes and expiration.[/]",
+                    f"[red]Autenticação falhou[/]\n\n{exc}\n\n"
+                    "[dim]O token não foi guardado. Verifique os âmbitos e a validade.[/]",
                     border_style="red",
-                    title="✗ Login failed",
+                    title="✗ Login falhou",
+                    box=box.ROUNDED,
                 )
             )
             raise typer.Exit(1)
-        console.print(f"[yellow]⚠[/] Token stored but API check had an issue: {exc}")
-        console.print(f"[green]✓[/] Token saved via [bold]{backend}[/]")
+        console.print(f"[yellow]⚠[/] Token guardado, mas a verificação da API teve um problema: {exc}")
+        console.print(f"[green]✓[/] Token guardado via [bold]{backend}[/]")
         raise typer.Exit(0)
     except Exception as exc:  # noqa: BLE001
-        console.print(f"[yellow]⚠[/] Network/validation error: {exc}")
+        console.print(f"[yellow]⚠[/] Erro de rede/validação: {exc}")
         console.print(
-            f"[green]✓[/] Token was still saved via [bold]{backend}[/]. "
-            "Run [cyan]ab-hub auth status[/] later to confirm."
+            f"[green]✓[/] O token foi mesmo assim guardado via [bold]{backend}[/]. "
+            "Execute [cyan]ab-hub autenticacao estado[/] mais tarde para confirmar."
         )
         raise typer.Exit(0)
 
@@ -144,25 +148,26 @@ def login(
     console.print(
         Panel(
             Text.from_markup(
-                f"[bold green]✓ Logged in successfully[/]\n\n"
-                f"[bold]User[/]      {login_name}"
+                f"[bold green]✓ Login efectuado com sucesso[/]\n\n"
+                f"[bold]Utilizador[/]  {login_name}"
                 + (f"  ([dim]{name}[/])" if name else "")
-                + f"\n[bold]Storage[/]   {backend}\n"
-                f"[bold]API rate[/]  {remaining}/{limit} remaining"
+                + f"\n[bold]Armazenamento[/]  {backend}\n"
+                f"[bold]Limite API[/]  {remaining}/{limit} restantes"
             ),
             border_style="green",
-            title="Welcome",
+            title="Bem-vindo",
             padding=(1, 2),
+            box=box.ROUNDED,
         )
     )
     console.print()
-    console.print("[dim]Next:[/]  [cyan]ab-hub scan[/]  — discover your repositories")
+    console.print("[dim]Próximo passo:[/]  [cyan]ab-hub analisar[/]  — descobrir os seus repositórios")
     console.print()
 
 
-@app.command("status")
+@app.command("estado")
 def status() -> None:
-    """Show current authentication status and rate limits."""
+    """Mostrar o estado actual de autenticação e os limites de taxa."""
     token = get_token()
     source = token_source()
 
@@ -171,19 +176,20 @@ def status() -> None:
         console.print(
             Panel(
                 Text.from_markup(
-                    "[yellow]Not authenticated[/]\n\n"
-                    "Run [bold cyan]ab-hub auth login[/] to connect your GitHub account.\n"
-                    "Or set [bold]GITHUB_TOKEN[/] in the environment."
+                    "[yellow]Não autenticado[/]\n\n"
+                    "Execute [bold cyan]ab-hub autenticacao entrar[/] para ligar a sua conta GitHub.\n"
+                    "Ou defina [bold]GITHUB_TOKEN[/] no ambiente."
                 ),
                 border_style="yellow",
-                title="Status",
+                title="Estado",
                 padding=(1, 2),
+                box=box.ROUNDED,
             )
         )
         console.print()
         raise typer.Exit(1)
 
-    console.print("[dim]Checking GitHub connection…[/]")
+    console.print("[dim]A verificar a ligação ao GitHub…[/]")
 
     async def _check() -> dict:
         async with GitHubClient() as client:
@@ -198,14 +204,15 @@ def status() -> None:
         console.print(
             Panel(
                 Text.from_markup(
-                    f"[red]Token found but API check failed[/]\n\n"
+                    f"[red]Token encontrado, mas a verificação da API falhou[/]\n\n"
                     f"{exc}\n\n"
-                    f"[dim]Source: {source}[/]\n"
-                    "Try [cyan]ab-hub auth logout[/] then [cyan]ab-hub auth login[/]."
+                    f"[dim]Origem: {source}[/]\n"
+                    "Tente [cyan]ab-hub autenticacao sair[/] e depois [cyan]ab-hub autenticacao entrar[/]."
                 ),
                 border_style="red",
-                title="✗ Status",
+                title="✗ Estado",
                 padding=(1, 2),
+                box=box.ROUNDED,
             )
         )
         raise typer.Exit(1)
@@ -218,40 +225,56 @@ def status() -> None:
     table = Table(show_header=False, box=None, padding=(0, 2))
     table.add_column(style="bold")
     table.add_column()
-    table.add_row("User", f"[cyan]{user.get('login')}[/]")
+    table.add_row("Utilizador", f"[cyan]{user.get('login')}[/]")
     if user.get("name"):
-        table.add_row("Name", str(user.get("name")))
-    table.add_row("Token source", source)
-    table.add_row("Core rate", f"{core.get('remaining', '?')} / {core.get('limit', '?')}")
-    table.add_row("Search rate", f"{search.get('remaining', '?')} / {search.get('limit', '?')}")
+        table.add_row("Nome", str(user.get("name")))
+    table.add_row("Origem do token", source)
+    table.add_row("Limite core", f"{core.get('remaining', '?')} / {core.get('limit', '?')}")
+    table.add_row("Limite search", f"{search.get('remaining', '?')} / {search.get('limit', '?')}")
     if user.get("html_url"):
-        table.add_row("Profile", user["html_url"])
+        table.add_row("Perfil", user["html_url"])
 
     console.print()
-    console.print(Panel(table, title="[green]✓ Connected[/]", border_style="green", padding=(1, 1)))
+    console.print(
+        Panel(
+            table,
+            title="[green]✓ Ligado[/]",
+            border_style="green",
+            padding=(1, 1),
+            box=box.ROUNDED,
+        )
+    )
     console.print()
 
 
-@app.command("logout")
+@app.command("sair")
 def logout() -> None:
-    """Remove stored credentials."""
+    """Remover as credenciais guardadas."""
     had = get_token() is not None
     delete_token()
     console.print()
     if had:
         console.print(
             Panel(
-                "[green]✓[/] Logged out. Credentials removed from keyring and local config.",
+                "[green]✓[/] Sessão terminada. Credenciais removidas do keyring e da configuração local.",
                 border_style="green",
                 padding=(0, 2),
+                box=box.ROUNDED,
             )
         )
     else:
         console.print(
             Panel(
-                "[dim]No stored credentials found. Already logged out.[/]",
+                "[dim]Nenhuma credencial guardada encontrada. Já estava desligado.[/]",
                 border_style="dim",
                 padding=(0, 2),
+                box=box.ROUNDED,
             )
         )
     console.print()
+
+
+# Aliases em inglês
+app.command("login")(login)
+app.command("status")(status)
+app.command("logout")(logout)

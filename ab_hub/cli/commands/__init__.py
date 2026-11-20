@@ -1,1 +1,1 @@
-"""CLI command modules."""
+"""Módulos de comandos do CLI."""

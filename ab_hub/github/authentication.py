@@ -69,7 +69,6 @@ def _delete_file_token() -> bool:
 def _keyring_get() -> Optional[str]:
     try:
         import keyring
-
         token = keyring.get_password(SERVICE_NAME, USERNAME)
         return token.strip() if token else None
     except Exception as exc:  # noqa: BLE001
@@ -80,7 +79,6 @@ def _keyring_get() -> Optional[str]:
 def _keyring_set(token: str) -> bool:
     try:
         import keyring
-
         keyring.set_password(SERVICE_NAME, USERNAME, token)
         return True
     except Exception as exc:  # noqa: BLE001
@@ -91,7 +89,6 @@ def _keyring_set(token: str) -> bool:
 def _keyring_delete() -> bool:
     try:
         import keyring
-
         keyring.delete_password(SERVICE_NAME, USERNAME)
         return True
     except Exception:  # noqa: BLE001
@@ -136,12 +133,12 @@ def set_token(token: str) -> str:
     """
     token = token.strip()
     if not token:
-        raise AuthenticationError("Token cannot be empty.")
+        raise AuthenticationError("O token não pode estar vazio.")
 
     # Basic format sanity check (don't reject fine-grained tokens)
     if len(token) < 20:
         raise AuthenticationError(
-            "Token looks too short. Paste a full GitHub Personal Access Token."
+            "O token parece demasiado curto. Cole um Token de Acesso Pessoal do GitHub completo."
         )
 
     if _keyring_set(token):
@@ -154,10 +151,10 @@ def set_token(token: str) -> str:
     try:
         _write_file_token(token)
         logger.info("Token stored in local config file (keyring unavailable)")
-        return "file"
+        return "ficheiro"
     except Exception as exc:  # noqa: BLE001
         raise AuthenticationError(
-            f"Could not store token (keyring and file both failed): {exc}"
+            f"Não foi possível guardar o token (keyring e ficheiro falharam): {exc}"
         ) from exc
 
 
@@ -176,25 +173,25 @@ def require_token() -> str:
     token = get_token()
     if not token:
         raise AuthenticationError(
-            "No GitHub token found.\n"
-            "  → Run:  ab-hub auth login\n"
-            "  → Or set environment variable:  export GITHUB_TOKEN=ghp_..."
+            "Nenhum token GitHub encontrado.\n"
+            "  → Execute:  ab-hub autenticacao entrar\n"
+            "  → Ou defina a variável de ambiente:  export GITHUB_TOKEN=ghp_..."
         )
     return token
 
 
 def token_source() -> str:
-    """Describe where the current token is coming from (for status UI)."""
+    """Indica de onde vem o token actual (para o UI de estado)."""
     if os.getenv("GITHUB_TOKEN") or os.getenv("AB_HUB_GITHUB_TOKEN"):
-        return "environment"
+        return "ambiente"
     try:
         settings = get_settings()
         if settings.github_token:
-            return "env_file"
+            return "ficheiro_env"
     except Exception:  # noqa: BLE001
         pass
     if _keyring_get():
         return "keyring"
     if _read_file_token():
-        return "file"
-    return "none"
+        return "ficheiro"
+    return "nenhum"
