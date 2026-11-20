@@ -1,188 +1,160 @@
-# AB-hub
+# AB-hub By Aquiles_Bachira
 
-**Project Intelligence & Repository Control System**
+**Sistema de Inteligência de Projectos e Controlo de Repositórios**
 
-> Every project has a history. AB-hub makes sure none of it gets lost.  
-> **Know what you built. Control what you own.**
+> Cada projecto tem uma história. O AB-hub garante que nenhuma se perde.  
+> **Sabe o que construiu. Controla o que possui.**
 
-Version **0.1.0**
+Versão **0.1.0**
 
-## Overview
+## Visão geral
 
-AB-hub is a local-first, read-only CLI application that discovers, inventories, analyzes, classifies and monitors all GitHub repositories you have authorized access to (personal, private and organization repositories).
+O AB-hub é uma aplicação CLI local-first e apenas de leitura que descobre, inventaria, analisa, classifica e monitoriza todos os repositórios GitHub a que tem acesso autorizado (pessoais, privados e de organizações).
 
-It acts as a central engineering archive so you never lose track of projects, technologies, activity history or abandoned work.
+Funciona como um arquivo central de engenharia para nunca perder o rasto de projectos, tecnologias, histórico de actividade ou trabalho abandonado.
 
-### Key Features
+### Principais funcionalidades
 
-- Discover all accessible repositories (owner / collaborator / organization)
-- Technology & dependency detection
-- Commit & activity intelligence with explainable scoring
-- Local SQLite persistence (works offline after first sync)
-- Incremental scanning
-- Filtering, search, comparison and export (JSON / CSV / Markdown)
-- Fully modular and extensible architecture
+- Descoberta de todos os repositórios acessíveis (proprietário / colaborador / organização)
+- Detecção de tecnologias e dependências
+- Inteligência de commits e actividade com pontuação explicável
+- Persistência local em SQLite (funciona offline após a primeira sincronização)
+- Análise incremental
+- Filtragem, pesquisa, comparação e exportação (JSON / CSV / Markdown)
+- Arquitectura totalmente modular e extensível
 
-## Requirements
+## Requisitos
 
 - Python 3.12+
-- A GitHub Personal Access Token with appropriate scopes:
-  - `repo` (for private repositories)
-  - `read:org` (for organization repositories)
+- Um Token de Acesso Pessoal do GitHub com os âmbitos adequados:
+  - `repo` (para repositórios privados)
+  - `read:org` (para repositórios de organizações)
 
-## Installation
+## Instalação
 
 ```bash
-# Clone or extract the project
+# Clonar ou extrair o projecto
 cd AB-hub
 
-# Create virtual environment (recommended)
+# Criar ambiente virtual (recomendado)
 python -m venv .venv
 source .venv/bin/activate   # Linux / macOS
 # .venv\Scripts\activate    # Windows
 
-# Install
+# Instalar
 pip install -e ".[dev]"
 ```
 
-## Quick Start
+## Início rápido
 
 ```bash
-# 1. Authenticate (interactive — paste your GitHub PAT)
-ab-hub auth login
+# Abrir o shell interactivo (permanece aberto até q + Enter)
+ab-hub
 
-# Check connection
-ab-hub auth status
+# Dentro do shell:
+#   autenticacao entrar
+#   analisar
+#   listar
+#   q
 
-# 2. Discover & analyze repositories
-ab-hub scan
+# Ou comandos clássicos num só passo:
+ab-hub autenticacao entrar
 
-# Optional: include vulnerability scan
-ab-hub scan --security
+# Verificar ligação
+ab-hub autenticacao estado
 
-# 3. List repositories
-ab-hub list
+# 2. Descobrir e analisar repositórios
+ab-hub analisar
 
-# 4. Inspect a specific project
-ab-hub inspect <repo-name>
+# Opcional: incluir análise de vulnerabilidades
+ab-hub analisar --security
 
-# 5. Activity & security
-ab-hub activity
-ab-hub abandoned
-ab-hub security overview
+# 3. Listar repositórios
+ab-hub listar
 
-# 6. Export
-ab-hub export --format json
+# 4. Inspeccionar um projecto específico
+ab-hub inspeccionar ver <nome-do-repo>
+
+# 5. Actividade e segurança
+ab-hub actividade
+ab-hub abandonados
+ab-hub seguranca resumo
+
+# 6. Exportar
+ab-hub exportar --format json
 ```
 
-Running `ab-hub` with no arguments shows a friendly home screen with status and quick commands.
+Ao executar `ab-hub` sem argumentos, é mostrado um ecrã inicial amigável com o estado e comandos rápidos.
 
-## CLI Commands
+## Comandos do CLI
 
-| Command | Description |
+| Comando | Descrição |
 |---------|-------------|
-| `ab-hub auth login` | Store GitHub token securely |
-| `ab-hub auth status` | Check authentication status |
-| `ab-hub auth logout` | Remove stored credentials |
-| `ab-hub scan` | Discover & analyze repositories |
-| `ab-hub scan --incremental` | Only process changes |
-| `ab-hub list` | List repositories (with filters) |
-| `ab-hub inspect <name>` | Detailed repository inspection |
-| `ab-hub commits <name>` | Commit history |
-| `ab-hub technologies` | Technology overview |
-| `ab-hub activity <name>` | Activity score & classification |
-| `ab-hub abandoned` | List potentially abandoned projects |
-| `ab-hub compare <a> <b>` | Compare two repositories |
-| `ab-hub report` | Generate summary report |
-| `ab-hub export --format json\|csv\|markdown` | Export data |
+| `ab-hub autenticacao entrar` | Guardar o token GitHub de forma segura |
+| `ab-hub autenticacao estado` | Verificar o estado de autenticação |
+| `ab-hub autenticacao sair` | Remover as credenciais guardadas |
+| `ab-hub analisar` | Descobrir e analisar repositórios |
+| `ab-hub analisar --incremental` | Processar apenas alterações |
+| `ab-hub listar` | Listar repositórios (com filtros) |
+| `ab-hub inspeccionar ver <nome>` | Inspecção detalhada de um repositório |
+| `ab-hub tecnologias` | Visão geral de tecnologias |
+| `ab-hub actividade <nome>` | Pontuação de actividade e classificação |
+| `ab-hub abandonados` | Listar projectos possivelmente abandonados |
+| `ab-hub comparar <a> <b>` | Comparar dois repositórios |
+| `ab-hub relatorio gerar` | Gerar relatório resumido |
+| `ab-hub exportar --format json\|csv\|markdown` | Exportar dados |
+| `ab-hub seguranca analisar` | Análise de vulnerabilidades (OSV) |
+| `ab-hub seguranca resumo` | Postura de segurança global |
+| `ab-hub seguranca listar <repo>` | Vulnerabilidades de um repositório |
 
-## Architecture
+Os nomes em inglês (`auth`, `scan`, `list`, …) continuam a funcionar como aliases.
+
+## Arquitectura
 
 ```
 AB-hub CLI
-    └── Application Core
-            ├── Discovery Engine
-            ├── Intelligence Engine (Tech / Commits / Activity)
-            ├── Control Engine
-            └── Data Repository (SQLite)
+    └── Núcleo da aplicação
+            ├── Motor de descoberta
+            ├── Motor de inteligência (Tech / Commits / Actividade)
+            ├── Motor de controlo
+            └── Repositório de dados (SQLite)
 ```
 
-## Security
+## Segurança
 
-- Tokens are never stored in the database or printed in logs.
-- Prefer system keyring when available.
-- Read-only by design — never modifies remote repositories.
-- Minimal required permissions.
+- Os tokens nunca são guardados na base de dados nem impressos nos logs.
+- Preferência pelo keyring do sistema quando disponível.
+- Apenas de leitura por desenho — nunca modifica repositórios remotos.
+- Permissões mínimas necessárias.
 
-
-## Security Monitoring
-
-AB-hub can scan dependencies against the [OSV](https://osv.dev) database:
+## Monitorização de segurança
 
 ```bash
-# During a normal scan
-ab-hub scan --security
+# Durante uma análise normal
+ab-hub analisar --security
 
-# Dedicated security pass
-ab-hub security scan
-ab-hub security scan my-repo
-ab-hub security overview
-ab-hub security list my-repo
+# Passagem dedicada de segurança
+ab-hub seguranca analisar
+ab-hub seguranca analisar meu-repo
+ab-hub seguranca resumo
+ab-hub seguranca listar meu-repo
 ```
 
-Findings are stored locally and included in reports. Severity levels: CRITICAL, HIGH, MEDIUM, LOW.
+Os resultados são guardados localmente e incluídos nos relatórios. Níveis de gravidade: CRITICAL, HIGH, MEDIUM, LOW.
 
-## Development
+## Desenvolvimento
 
 ```bash
-# Lint & format
 ruff check .
 ruff format .
-
-# Type checking
 mypy ab_hub
-
-# Tests
 pytest
 ```
 
-## Project Structure
+## Licença
 
-See the full modular layout under `ab_hub/`.
-
-
-## CI/CD
-
-GitHub Actions workflows are included:
-
-| Workflow | Trigger | Purpose |
-|----------|---------|---------|
-| **CI** | push / PR to main | Ruff lint + format, mypy, pytest (3.12 & 3.13), CLI smoke |
-| **Release** | tag `v*` | Build wheel/sdist, GitHub Release, optional PyPI publish |
-| **CodeQL** | push / weekly | Security static analysis |
-| **Dependabot** | weekly | Dependency & Actions updates |
-
-### Local parity
-
-```bash
-make install-dev
-make ci          # lint + tests + smoke
-make build       # sdist + wheel
-```
-
-### Release flow
-
-```bash
-git tag v0.1.0
-git push origin v0.1.0
-```
-
-For PyPI trusted publishing, configure the repository as a trusted publisher on PyPI (project `ab-hub`, environment `pypi`).
-
-## License
-
-MIT (to be confirmed)
+MIT (a confirmar)
 
 ---
 
-**AB-hub — Know what you built. Control what you own.**
+**AB-hub — Sabe o que construiu. Controla o que possui.**
